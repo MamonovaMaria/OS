@@ -10,11 +10,14 @@
 #include <sys/wait.h>
 
 
-void OpenDir(char *, char *, int);
+void OpenDir(char *, char *);
 void FileCopy(char *, char *);
 void CreatDestination(char *);
 pid_t CreatFork(char *);
-void SigHandler(int, int);
+void SigHandler(int);
+
+
+int n = 0;
 
 int main(int argc, char* argv[])
 {
@@ -35,10 +38,10 @@ int main(int argc, char* argv[])
 		pid_t p = CreatFork(argv[1]);
 		if(!p)
 		{
-			int i = 0;
-			OpenDir(argv[2], argv[3], i);
+			OpenDir(argv[2], argv[3]);
 			sleep(1);
 		}
+		printf("The end\n");
 		return 0;
 	}
 }
@@ -48,7 +51,7 @@ pid_t CreatFork(char *m)
 	int n = atoi(m);
 	pid_t pid = fork();
 
-	for(int i = 0; i < n-1; i++)
+	for(int i = 1; i < n-1; i++)
 	{
 		if(pid != 0)
 			fork();
@@ -77,9 +80,10 @@ void CreatDestination(char *dest)
 	mkdir(d_name, 0777);
 }
 
-void OpenDir(char *dir1, char *dir2, int i)
+void OpenDir(char *dir1, char *dir2)
 {
-	signal(SIGINT,  SigHandler(SIGINT, i));
+	kill(-1, SIGINT);
+	signal(SIGINT,  SigHandler);
 
 	DIR *dr1 = opendir(dir1);
 
@@ -113,10 +117,10 @@ void OpenDir(char *dir1, char *dir2, int i)
 			if(pre->d_type != DT_DIR)
 			{
 				FileCopy(dr1_n, dr2_n);
-				i++;
+				n++;
 			}
 			else
-				OpenDir(dr1_n, dr2_n, i);
+				OpenDir(dr1_n, dr2_n);
 
 		}
 	}
@@ -149,16 +153,9 @@ void FileCopy(char *dir1, char *dir2)
 	}
 }
 
-void SigHandler(int sig, int n) 
+void SigHandler(int sig) 
 {
-        printf("PID %d\n",  getpid());
-		//CopyInfo();
+        printf("PID %d\t",  getpid());
 		printf("File copy:  %d\n",  n);
 		signal(SIGINT, SIG_DFL);
 }
-
-//void CopyInfo()
-//{
-//
-//	printf("File copy:  %d\n",  n);
-//}
